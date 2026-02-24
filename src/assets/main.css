@@ -1,8 +1,81 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 @import 'tailwindcss';
+@plugin "@tailwindcss/forms";
+
+@theme {
+  /* Definisi Warna Custom */
+  --color-primary: #3d9cf5;
+  --color-primary_register: #339cff;
+  --color-background-light: #f5f7f8;
+  --color-background-dark: #101922;
+  --color-background-dark_register: #0f1923;
+
+  --color-primary-hover: #2b8ceb; /* Opsional untuk hover state yang lebih smooth */
+
+  /* Definisi Font */
+  --font-display: 'Inter', sans-serif;
+
+  /* Definisi Border Radius (Opsional, bawaan Tailwind sudah bagus) */
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+
+  /* Waiters Dashboard */
+
+  --color-primary_waiters: #197fe6;
+  --color-primary-dark_waiters: #1466b8;
+
+  --color-background-light_waiters: #f6f7f8;
+  --color-background-dark_waiters: #111921;
+
+  --color-surface-light_waiters: #ffffff;
+  --color-surface-dark_waiters: #1a242f;
+
+  /* Action Hub */
+  --color-backgorund-light_action: #f8fafc;
+  --color-background-dark_action: #0f172a;
+}
+
+/* Custom Scrollbar Styles (Sesuai desain asli) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* slate-300 */
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; /* slate-400 */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Pastikan material symbols di-load dengan benar */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 48;
+}
+
+/* Animasi klik */
+.action-card {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.action-card:active {
+  transform: scale(0.96);
+}
 
 @layer utilities {
   .font-Poppins {
     font-family: 'Poppins', sans-serif;
+  }
+  .font-Inter {
+    font-family: 'Inter', sans-serif;
   }
 }
