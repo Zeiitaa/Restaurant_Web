@@ -2,10 +2,12 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { jwtDecode } from 'jwt-decode'
+import { useToast } from 'vue-toastification'
 import router from '@/router'
 
 // State variables
 const auth = useAuthStore()
+const toast = useToast()
 
 const form = reactive({
     Username: '',
@@ -14,6 +16,7 @@ const form = reactive({
 
 const rememberMe = ref(false)
 const showPassword = ref(false)
+const isLoading = ref(false)
 
 // Function untuk toggle visibilitas password
 const togglePassword = () => {
@@ -22,12 +25,14 @@ const togglePassword = () => {
 
 // Function untuk handle login
 async function handleLogin() {
+    isLoading.value = true
     try {
         await auth.fetchAuth(form.Username, form.Password)
 
         if (auth.token) {
             await auth.fetchProfile()
             console.log(auth.profile.role);
+            toast.success("Login Successful!")
 
             // redirect 
             if (auth.isCustomer) {
@@ -41,7 +46,10 @@ async function handleLogin() {
             }
         }
     } catch (error) {
+        toast.error("Login failed. Please check your credentials.")
         console.error("Login Error:", error);
+    } finally {
+        isLoading.value = false
     }
 }
 
@@ -120,11 +128,13 @@ async function handleLogin() {
                         </label>
                     </div>
 
-                    <button
-                        class="w-full bg-primary hover:bg-primary/90 hover:cursor-pointer text-white font-semibold py-3.5 px-4 rounded-lg shadow-lg shadow-primary/30 transition-all active:scale-[0.98] flex items-center justify-center space-x-2"
-                        type="submit">
-                        <span>Sign In</span>
-                        <span class="material-icons text-sm">arrow_forward</span>
+                    <button type="submit" :disabled="isLoading" :class="[
+                        'w-full font-bold py-3.5 px-4 rounded-lg shadow-lg transition-all flex items-center justify-center space-x-2',
+                        isLoading ? 'bg-primary/70 cursor-not-allowed shadow-none text-white/80' : 'bg-primary hover:bg-primary/90 hover:cursor-pointer text-white shadow-primary/30 active:scale-[0.98]'
+                    ]">
+                        <span>{{ isLoading ? 'Signing In...' : 'Sign In' }}</span>
+                        <span v-if="!isLoading" class="material-icons text-sm">arrow_forward</span>
+                        <span v-else class="material-icons text-sm animate-spin">sync</span>
                     </button>
                 </form>
 

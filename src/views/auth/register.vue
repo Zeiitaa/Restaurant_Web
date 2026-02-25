@@ -20,6 +20,7 @@ const form = reactive({
 // State untuk visibilitas password
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
+const isLoading = ref(false)
 
 // Logic Register
 async function handleRegister() {
@@ -29,11 +30,17 @@ async function handleRegister() {
         return
     }
 
+    isLoading.value = true
+
     try {
         await auth.register(form.Username, form.Email, form.password, form.confirmPassword)
+        toast.success("Account created successfully!")
         router.push('/register-detail')
     } catch (error) {
+        toast.error("Registration failed. Please try again.")
         console.error(error);
+    } finally {
+        isLoading.value = false
     }
 }
 
@@ -163,11 +170,13 @@ const goBackToLogin = () => {
                         </div>
                     </div>
 
-                    <button
-                        class="w-full bg-primary_register hover:bg-primary_register/90 text-white font-semibold py-3 rounded-lg shadow-md shadow-primary/25 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 mt-4 cursor-pointer"
-                        type="submit">
-                        <span>Create Account</span>
-                        <span class="material-icons text-sm">arrow_forward</span>
+                    <button type="submit" :disabled="isLoading" :class="[
+                        'w-full font-semibold py-3 rounded-lg shadow-md transition-all transform flex items-center justify-center gap-2 mt-4',
+                        isLoading ? 'bg-primary_register/70 cursor-not-allowed text-white/80' : 'bg-primary_register hover:bg-primary_register/90 text-white shadow-primary/25 active:scale-[0.98] cursor-pointer'
+                    ]">
+                        <span>{{ isLoading ? 'Creating Account...' : 'Create Account' }}</span>
+                        <span v-if="!isLoading" class="material-icons text-sm">arrow_forward</span>
+                        <span v-else class="material-icons text-sm animate-spin">sync</span>
                     </button>
                 </form>
 
