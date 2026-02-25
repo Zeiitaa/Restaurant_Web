@@ -10,7 +10,7 @@ import {
   useToast
 } from 'vue-toastification'
 import router from '@/router'
-import VerifyOTP from '@/views/auth/VerifyOTP.vue'
+
 const toast = useToast()
 
 export const useAuthStore = defineStore('auth', {
@@ -88,7 +88,6 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async registerDetail(name, phone, address) {
-
       try {
         const res = await api.post(`/auth/register-detail`, {
           name: name,

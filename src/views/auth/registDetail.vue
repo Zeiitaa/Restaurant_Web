@@ -14,15 +14,21 @@ const form = reactive({
     phone: '',
     address: '',
 })
+const isLoading = ref(false)
 
 
 // Logic Register
 async function handleRegister() {
+    isLoading.value = true
     try {
         await auth.registerDetail(form.name, form.phone, form.address)
+        toast.success("Account setup complete!")
         router.push('/')
     } catch (error) {
+        toast.error("Failed to save account details.")
         console.error(error);
+    } finally {
+        isLoading.value = false
     }
 }
 </script>
@@ -103,11 +109,13 @@ async function handleRegister() {
                         </div>
                     </div>
 
-                    <button
-                        class="w-full bg-primary_register hover:bg-primary_register/90 text-white font-semibold py-3 rounded-lg shadow-md shadow-primary/25 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 mt-10 cursor-pointer"
-                        type="submit">
-                        <span>Finalize?</span>
-                        <span class="material-icons text-sm">arrow_forward</span>
+                    <button type="submit" :disabled="isLoading" :class="[
+                        'w-full font-semibold py-3 rounded-lg shadow-md transition-all transform flex items-center justify-center gap-2 mt-10',
+                        isLoading ? 'bg-primary_register/70 cursor-not-allowed text-white/80' : 'bg-primary_register hover:bg-primary_register/90 text-white shadow-primary/25 active:scale-[0.98] cursor-pointer'
+                    ]">
+                        <span>{{ isLoading ? 'Saving Details...' : 'Finalize?' }}</span>
+                        <span v-if="!isLoading" class="material-icons text-sm">arrow_forward</span>
+                        <span v-else class="material-icons text-sm animate-spin">sync</span>
                     </button>
                 </form>
             </div>
