@@ -64,7 +64,7 @@ const router = createRouter({
       component: ActionHub
     },
     {
-      path: '/waiters/menu',
+      path: '/waiters/menu/:tableCode?',
       name: 'waiters-menu',
       component: Menu
     },
