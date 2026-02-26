@@ -64,7 +64,12 @@ const goBack = () => {
           <p class="text-slate-500 dark:text-slate-400 text-lg">Choose an available table to begin the order</p>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6 mb-16">
+        <div v-if="tableStore.tableAvailable.length == 0" class="flex justify-center gap-4 md:gap-6 mb-16">
+          <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mb-3">Currently No Table are Available </h2>
+        </div>
+
+
+        <div v-else class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6 mb-16">
 
           <button v-for="table in tableStore.tableAvailable" :key="table.id" @click="selectTable(table)" :class="[
             'table-card flex flex-col items-center justify-center text-center space-y-4 min-h-45 rounded-3xl transition-all duration-300',

@@ -17,8 +17,12 @@ import resetPassword from '@/views/auth/resetPassword.vue'
 import ActionHub from '@/views/waiters/ActionHub.vue'
 import Menu from '@/views/waiters/order/Menu.vue'
 import Table from '@/views/waiters/order/Table.vue'
+import OngoingOrder from '@/views/waiters/order/OngoingOrder.vue'
+import SumNPayment from '@/views/waiters/order/SumNPayment.vue'
+import Payment from '@/views/waiters/order/Payment.vue'
 
 import NotFound from '@/views/notFound.vue'
+
 
 const router = createRouter({
   history: createWebHistory(
@@ -72,6 +76,22 @@ const router = createRouter({
       path: '/waiters/table',
       name: 'waiters-table',
       component: Table
+    },
+    {
+      path: '/waiters/ongoing-order',
+      name: 'waiters-ongoing-order',
+      component: OngoingOrder
+    },
+    {
+      path: '/waiters/payment',
+      name: 'waiters-sum-payment',
+      component: Payment
+    },
+
+    {
+      path: '/waiters/payment-detail/:id',
+      name: 'waiters-payment-detail',
+      component: SumNPayment
     },
     {
       path: '/:catchAll(.*)',

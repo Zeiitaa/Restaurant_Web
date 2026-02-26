@@ -27,7 +27,7 @@ export const useTableStore = defineStore('table', {
 
         async fetchTableAvailable() {
             try {
-                const tableData = await api.get(`/table/available/`)
+                const tableData = await api.get(`/table/available`)
                 this.tableAvailable = tableData.data
                 localStorage.setItem("tableAvailable", JSON.stringify(tableData.data))
             } catch (error) {

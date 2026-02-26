@@ -40,8 +40,8 @@ const navigateTo = (destination) => {
     console.log(`Navigating to: ${destination}`)
     // Contoh penggunaan router:
     if (destination === 'new-order') router.push('/waiters/table')
-    // if (destination === 'ongoing') router.push('/kitchen-status')
-    // if (destination === 'payment') router.push('/checkout')
+    if (destination === 'ongoing') router.push('/waiters/ongoing-order')
+    if (destination === 'payment') router.push('/waiters/payment')
 }
 </script>
 
