@@ -33,6 +33,7 @@ const selectedItem = ref(null)
 // --- Guest Info ---
 const guestName = ref('')
 const discount = ref(0)
+const orderError = ref('')
 
 onMounted(async () => {
     console.log(auth.profile.id);
@@ -127,6 +128,7 @@ const handleAddToCartFromModal = (data) => {
 
 const sendToKitchen = () => {
     if (cartStore.items.length === 0) return
+    orderError.value = ''
     isGuestModalOpen.value = true
 }
 
@@ -148,7 +150,8 @@ const confirmOrder = async () => {
         discount.value = 0
     } catch (error) {
         console.error('Failed to send order:', error)
-        alert('Failed to send order to kitchen. Please try again.')
+        orderError.value = error.response?.data?.detail ?? 'Failed to send order to kitchen. Please try again.'
+        isGuestModalOpen.value = true
     } finally {
         isLoading.value = false
     }
@@ -206,8 +209,14 @@ const backtoTable = () => {
                     </div>
                 </div>
 
+                <div v-if="orderError"
+                    class="flex items-start gap-3 mt-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-2xl px-4 py-3 text-sm font-medium">
+                    <span class="material-symbols-outlined text-base mt-0.5 shrink-0">error</span>
+                    <span>{{ orderError }}</span>
+                </div>
+
                 <div class="flex gap-3 mt-8">
-                    <button @click="isGuestModalOpen = false"
+                    <button @click="isGuestModalOpen = false; orderError = ''"
                         class="flex-1 h-12 rounded-2xl font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
                         Cancel
                     </button>
@@ -247,15 +256,16 @@ const backtoTable = () => {
         <header
             class="h-16 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark_action px-6 shrink-0 z-20">
             <div class="flex items-center gap-4">
-                <div class="flex gap-4 items-center hover:cursor-pointer hover:scale-110" @click="router.push('/waiters')">
-                <div class="size-8 text-primary_waiters">
-                    <svg class="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                        <path
-                            d="M36.7273 44C33.9891 44 31.6043 39.8386 30.3636 33.69C29.123 39.8386 26.7382 44 24 44C21.2618 44 18.877 39.8386 17.6364 33.69C16.3957 39.8386 14.0109 44 11.2727 44C7.25611 44 4 35.0457 4 24C4 12.9543 7.25611 4 11.2727 4C14.0109 4 16.3957 8.16144 17.6364 14.31C18.877 8.16144 21.2618 4 24 4C26.7382 4 29.123 8.16144 30.3636 14.31C31.6043 8.16144 33.9891 4 36.7273 4C40.7439 4 44 12.9543 44 24C44 35.0457 40.7439 44 36.7273 44Z"
-                            fill="currentColor"></path>
-                    </svg>
-                </div>
-                <h2 class="text-xl mt-1 font-bold leading-tight tracking-tight">RestoKita</h2>
+                <div class="flex gap-4 items-center hover:cursor-pointer hover:scale-110"
+                    @click="router.push('/waiters')">
+                    <div class="size-8 text-primary_waiters">
+                        <svg class="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M36.7273 44C33.9891 44 31.6043 39.8386 30.3636 33.69C29.123 39.8386 26.7382 44 24 44C21.2618 44 18.877 39.8386 17.6364 33.69C16.3957 39.8386 14.0109 44 11.2727 44C7.25611 44 4 35.0457 4 24C4 12.9543 7.25611 4 11.2727 4C14.0109 4 16.3957 8.16144 17.6364 14.31C18.877 8.16144 21.2618 4 24 4C26.7382 4 29.123 8.16144 30.3636 14.31C31.6043 8.16144 33.9891 4 36.7273 4C40.7439 4 44 12.9543 44 24C44 35.0457 40.7439 44 36.7273 44Z"
+                                fill="currentColor"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-xl mt-1 font-bold leading-tight tracking-tight">RestoKita</h2>
                 </div>
                 <div
                     class="ml-8 flex items-center gap-2 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700">
