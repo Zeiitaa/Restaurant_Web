@@ -1,6 +1,10 @@
-import { defineStore } from "pinia";
+import {
+    defineStore
+} from "pinia";
 import api from "@/helpers/api";
-import { useAuthStore } from "./auth";
+import {
+    useAuthStore
+} from "./auth";
 
 export const useCartStore = defineStore('cart', {
     state: () => ({
@@ -23,24 +27,21 @@ export const useCartStore = defineStore('cart', {
     },
 
     actions: {
-        async placeOrder(tableId, guestName = 'Guest') {
-            const auth = useAuthStore()
+        async placeOrder(tableId, staff_id, guestName, discount) {
             try {
                 const orderData = {
                     table_id: tableId,
-                    customer_id: 1, // Default guest
-                    staff_id: auth.profile?.id || 1,
+                    staff_id: staff_id,
                     guest_name: guestName,
-                    method: "cash",
                     items: this.items.map(item => ({
                         menu_id: item.id,
                         quantity: item.quantity,
                         notes: item.notes || "",
                         order_type: item.orderType === 'dine-in' ? 'dinein' : 'takeaway'
                     })),
-                    discount: 0
+                    discount: discount
                 }
-                
+
                 const response = await api.post('/orders/', orderData)
                 if (response.data) {
                     this.clearCart()
@@ -53,10 +54,15 @@ export const useCartStore = defineStore('cart', {
         },
 
         addToCart(data) {
-            const { item, quantity, type, notes } = data
-            const existingItem = this.items.find(i => 
-                i.id === item.id && 
-                i.orderType === (type || 'dine-in') && 
+            const {
+                item,
+                quantity,
+                type,
+                notes
+            } = data
+            const existingItem = this.items.find(i =>
+                i.id === item.id &&
+                i.orderType === (type || 'dine-in') &&
                 i.notes === (notes || '')
             )
 

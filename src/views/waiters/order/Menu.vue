@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useMenuStore } from '@/stores/menu';
 import { useCategoryStore } from '@/stores/category';
 import { useCartStore } from '@/stores/cart';
+import { useTableStore } from '@/stores/table';
 import { useRoute } from 'vue-router';
 import CardDetailOrder from '@/components/cardDetailOrder.vue';
 import MenuCard from '@/components/MenuCard.vue';
@@ -14,22 +15,36 @@ const auth = useAuthStore()
 const menuStore = useMenuStore()
 const categoryStore = useCategoryStore()
 const cartStore = useCartStore()
+const tableStore = useTableStore()
 const route = useRoute()
 
 const tableCode = ref(route.params.tableCode || '')
+const tableId = ref(null)
 const searchQuery = ref('')
 const activeCategory = ref('All')
 
 // --- Modal State ---
 const isModalOpen = ref(false)
 const isSuccessModalOpen = ref(false)
+const isGuestModalOpen = ref(false)
 const isLoading = ref(false)
 const selectedItem = ref(null)
 
+// --- Guest Info ---
+const guestName = ref('')
+const discount = ref(0)
+
 onMounted(async () => {
+    console.log(auth.profile.id);
     try {
         await categoryStore.fetchCategory()
         await menuStore.fetchMenu()
+
+        // Get Table ID from Table Code
+        if (tableCode.value) {
+            const table = await tableStore.fetchTableById(tableCode.value)
+            if (table) tableId.value = table.id
+        }
     } catch (error) {
         console.error('Failed to fetch menu:', error)
     }
@@ -110,16 +125,29 @@ const handleAddToCartFromModal = (data) => {
     closeModal()
 }
 
-const sendToKitchen = async () => {
+const sendToKitchen = () => {
     if (cartStore.items.length === 0) return
+    isGuestModalOpen.value = true
+}
 
+const confirmOrder = async () => {
+    if (!guestName.value) return
+
+    isGuestModalOpen.value = false
     isLoading.value = true
     try {
-        await cartStore.placeOrder(tableCode.value)
+        await cartStore.placeOrder(
+            tableId.value || 0,
+            auth.profile.id,
+            guestName.value,
+            discount.value
+        )
         isSuccessModalOpen.value = true
+        // Reset form
+        guestName.value = ''
+        discount.value = 0
     } catch (error) {
         console.error('Failed to send order:', error)
-        // Tambahkan alert sederhana jika gagal
         alert('Failed to send order to kitchen. Please try again.')
     } finally {
         isLoading.value = false
@@ -145,6 +173,50 @@ const backtoTable = () => {
         <div v-if="isModalOpen"
             class="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
             <CardDetailOrder :item="selectedItem" @close="closeModal" @add="handleAddToCartFromModal" />
+        </div>
+
+        <!-- Guest Information Modal -->
+        <div v-if="isGuestModalOpen"
+            class="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
+            <div
+                class="bg-white dark:bg-surface-dark_waiters w-full max-w-sm rounded-4xl overflow-hidden shadow-2xl p-8 flex flex-col scale-in">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="size-10 bg-primary_waiters/10 rounded-full flex items-center justify-center">
+                        <span class="material-symbols-outlined text-primary_waiters">person_add</span>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-900 dark:text-white">Guest Details</h3>
+                </div>
+
+                <div class="space-y-5">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Guest
+                            Name</label>
+                        <input v-model="guestName" type="text" placeholder="Who's ordering?"
+                            class="w-full bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-primary_waiters/30 focus:bg-white dark:focus:bg-slate-900 rounded-2xl h-12 px-4 outline-none transition-all font-medium text-slate-700 dark:text-slate-200" />
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Discount
+                            (%)</label>
+                        <div class="relative">
+                            <input v-model.number="discount" type="number" min="0" max="100" placeholder="0"
+                                class="w-full bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-primary_waiters/30 focus:bg-white dark:focus:bg-slate-900 rounded-2xl h-12 px-4 pr-12 outline-none transition-all font-bold text-primary_waiters dark:text-primary_waiters" />
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-8">
+                    <button @click="isGuestModalOpen = false"
+                        class="flex-1 h-12 rounded-2xl font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                        Cancel
+                    </button>
+                    <button @click="confirmOrder" :disabled="!guestName"
+                        class="flex-2 bg-primary_waiters hover:bg-primary-dark_waiters disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl h-12 font-bold shadow-lg shadow-primary_waiters/20 transition-all active:scale-95 cursor-pointer">
+                        Confirm Order
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Success Order Modal -->
