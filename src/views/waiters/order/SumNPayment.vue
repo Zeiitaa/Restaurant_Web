@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useTableStore } from '@/stores/table'
 import api from '@/helpers/api'
+import CashPayment from '@/components/cashPayment.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -19,6 +20,9 @@ const orderData = ref(null)
 const isLoading = ref(false)
 const isProcessing = ref(false)
 
+// --- Cash Modal State ---
+const showCashModal = ref(false)
+
 // --- QRIS State ---
 const showQRIS = ref(false)
 const qrCodeUrl = ref('')
@@ -33,6 +37,7 @@ const fetchOrderDetail = async () => {
         })
         orderData.value = res.data
 
+        console.log(orderData.value);
         const tableObj = tableStore.table?.find(t => t.id === res.data.table_id)
         tableNumber.value = tableObj ? tableObj.table_code : res.data.table_id
         orderNumber.value = res.data.id.toString()
@@ -66,9 +71,18 @@ const subtotal = computed(() => {
     return orderData.value.details.reduce((sum, item) => sum + item.subtotal, 0)
 })
 
+// discount dari backend adalah persen (misal: 10 = 10%)
+const discountAmount = computed(() => {
+    if (!orderData.value) return 0
+    const pct = orderData.value.discount || 0
+    return Math.round(subtotal.value * pct / 100)
+})
+
+const afterDiscount = computed(() => subtotal.value - discountAmount.value)
+
 const tax = computed(() => {
     if (!orderData.value) return 0
-    return orderData.value.total_amount - subtotal.value + (orderData.value.discount || 0)
+    return orderData.value.total_amount - afterDiscount.value
 })
 
 const grandTotal = computed(() => {
@@ -77,63 +91,96 @@ const grandTotal = computed(() => {
 })
 
 // --- Methods ---
-const confirmPayment = async () => {
+const confirmPayment = () => {
     if (paymentMethod.value === 'qris') {
         generateQRIS()
         return
     }
-
-    if (confirm(`Confirm CASH payment for Table ${tableNumber.value}?`)) {
-        isProcessing.value = true
-        try {
-            await api.patch(`/orders/${orderId.value}/status`, {
-                payment_status: 'paid',
-                method: 'cash',
-                amount_paid: grandTotal.value
-            }, {
-                headers: { Authorization: `Bearer ${auth.token}` }
-            })
-
-            // Mark table as available
-            const tableObj = tableStore.table?.find(t => t.id === orderData.value.table_id)
-            if (tableObj) {
-                await api.patch(`/table/${tableObj.table_code}`, { status: 'available' })
-            }
-
-            alert('Payment successful!')
-            router.push('/waiters/payment')
-        } catch (error) {
-            console.error('Payment failed:', error)
-            alert('Payment processing failed.')
-        } finally {
-            isProcessing.value = false
-        }
-    }
+    // Tampilkan modal cash
+    showCashModal.value = true
 }
 
-const generateQRIS = async () => {
+const handleCashComplete = async ({ received, change }) => {
+    showCashModal.value = false
     isProcessing.value = true
     try {
-        const res = await api.post(`/orders/${orderId.value}/generate-qris`)
-        qrCodeUrl.value = res.data.qr_image_url
-        showQRIS.value = true
+        await api.patch(`/orders/${orderId.value}/status`, {
+            payment_status: 'paid',
+            method: 'cash',
+            amount_paid: received
+        }, {
+            headers: { Authorization: `Bearer ${auth.token}` }
+        })
+
+        // Mark table as available
+        const tableObj = tableStore.table?.find(t => t.id === orderData.value.table_id)
+        if (tableObj) {
+            await api.patch(`/table/${tableObj.table_code}`, { status: 'available' }, {
+                headers: { Authorization: `Bearer ${auth.token}` }
+            })
+        }
+
+        alert('Pembayaran berhasil!')
+        router.push('/waiters/payment')
     } catch (error) {
-        console.error('Failed to generate QRIS:', error)
-        alert('Failed to generate QR code.')
+        console.error('Payment failed:', error)
+        alert('Pembayaran gagal diproses.')
     } finally {
         isProcessing.value = false
     }
 }
 
-const closeQRIS = () => {
+const generateQRIS = async () => {
+    isProcessing.value = true
+    showQRIS.value = true  // buka modal duluan, tampilkan spinner
+    qrCodeUrl.value = ''
+    try {
+        const res = await api.post(`/orders/${orderId.value}/generate-qris`, {}, {
+            headers: { Authorization: `Bearer ${auth.token}` }
+        })
+        qrCodeUrl.value = res.data.qr_image_url
+    } catch (error) {
+        console.error('Failed to generate QRIS:', error)
+        showQRIS.value = false
+        alert('Gagal membuat QR Code. Coba lagi.')
+    } finally {
+        isProcessing.value = false
+    }
+}
+
+const completeQRIS = async () => {
+    isProcessing.value = true
+    try {
+        await api.patch(`/orders/${orderId.value}/status`, {
+            payment_status: 'paid',
+            method: 'qris',
+            amount_paid: grandTotal.value
+        }, {
+            headers: { Authorization: `Bearer ${auth.token}` }
+        })
+
+        // Mark table as available
+        const tableObj = tableStore.table?.find(t => t.id === orderData.value.table_id)
+        if (tableObj) {
+            await api.patch(`/table/${tableObj.table_code}`, { status: 'available' }, {
+                headers: { Authorization: `Bearer ${auth.token}` }
+            })
+        }
+
+        showQRIS.value = false
+        qrCodeUrl.value = ''
+        router.push('/waiters/payment')
+    } catch (error) {
+        console.error('Failed to complete QRIS payment:', error)
+        alert('Gagal menyelesaikan pembayaran.')
+    } finally {
+        isProcessing.value = false
+    }
+}
+
+const cancelQRIS = () => {
     showQRIS.value = false
     qrCodeUrl.value = ''
-    // Real app would poll for status, here we just refresh
-    fetchOrderDetail().then(() => {
-        if (orderData.value.payment_status === 'paid') {
-            router.push('/waiters/payment')
-        }
-    })
 }
 
 const cancelOrder = () => {
@@ -143,7 +190,7 @@ const cancelOrder = () => {
 
 <template>
     <div
-        class="font-['Inter'] bg-[#f5f7f8] dark:bg-[#0f1923] min-h-screen text-[#121811] dark:text-white transition-colors duration-200">
+        class="font-['Inter'] bg-background-light dark:bg-background-dark_register min-h-screen text-[#121811] dark:text-white transition-colors duration-200">
 
         <header
             class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-10 py-3 sticky top-0 z-50">
@@ -177,7 +224,7 @@ const cancelOrder = () => {
             </div>
         </header>
 
-        <main class="max-w-[1280px] mx-auto px-10 py-8">
+        <main class="max-w-7xlpx mx-auto px-10 py-8">
 
             <div class="flex flex-wrap justify-between gap-3 mb-8">
                 <div class="flex flex-col gap-1">
@@ -251,8 +298,13 @@ const cancelOrder = () => {
                                 </div>
                                 <div v-if="orderData.discount > 0"
                                     class="flex justify-between items-center text-rose-500">
-                                    <p class="text-base font-medium">Discount</p>
-                                    <p class="text-base font-semibold">- {{ formatPrice(orderData.discount) }}</p>
+                                    <p class="text-base font-medium">Discount ({{ orderData.discount }}%)</p>
+                                    <p class="text-base font-semibold">- {{ formatPrice(discountAmount) }}</p>
+                                </div>
+                                <div v-if="orderData.discount > 0"
+                                    class="flex justify-between items-center text-slate-400 dark:text-slate-500 text-sm border-b border-dashed border-slate-200 dark:border-slate-700 pb-3">
+                                    <p class="font-medium italic">Setelah diskon</p>
+                                    <p class="font-semibold">{{ formatPrice(afterDiscount) }}</p>
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <p class="text-slate-500 dark:text-slate-400 text-base font-medium">Tax & Service
@@ -285,7 +337,7 @@ const cancelOrder = () => {
                                         class="h-48 flex flex-col items-center justify-center gap-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 text-center transition-all peer-checked:border-primary peer-checked:bg-primary/5 hover:border-primary/50">
                                         <div
                                             class="size-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                                            <span class="material-symbols-outlined !text-4xl">payments</span>
+                                            <span class="material-symbols-outlined text-4xl!">payments</span>
                                         </div>
                                         <div>
                                             <p class="text-lg font-bold text-slate-900 dark:text-white">Cash</p>
@@ -305,7 +357,7 @@ const cancelOrder = () => {
                                         class="h-48 flex flex-col items-center justify-center gap-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 text-center transition-all peer-checked:border-primary peer-checked:bg-primary/5 hover:border-primary/50">
                                         <div
                                             class="size-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                                            <span class="material-symbols-outlined !text-4xl">qr_code_2</span>
+                                            <span class="material-symbols-outlined text-4xl!">qr_code_2</span>
                                         </div>
                                         <div>
                                             <p class="text-lg font-bold text-slate-900 dark:text-white">QRIS</p>
@@ -351,22 +403,62 @@ const cancelOrder = () => {
             </div>
         </main>
 
+        <!-- Cash Payment Modal -->
+        <CashPayment :is-open="showCashModal" :total-due="grandTotal" @close="showCashModal = false"
+            @complete="handleCashComplete" />
+
         <!-- QRIS Modal -->
         <div v-if="showQRIS"
-            class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
+            class="fixed inset-0 z-100 flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
             <div
-                class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-4xl p-8 flex flex-col items-center text-center shadow-2xl">
-                <h3 class="text-2xl font-black mb-2">Scan to Pay</h3>
-                <p class="text-slate-500 mb-6 font-medium">Total: {{ formatPrice(grandTotal) }}</p>
+                class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl flex flex-col items-center">
 
-                <div class="bg-white p-4 rounded-3xl border-4 border-slate-100 mb-8 aspect-square w-full">
-                    <img :src="qrCodeUrl" alt="QRIS Code" class="w-full h-full object-contain" />
+                <!-- Header -->
+                <div class="w-full bg-primary px-8 pt-8 pb-6 text-center">
+                    <div class="flex items-center justify-center gap-2 mb-1">
+                        <span class="material-symbols-outlined text-white">qr_code_2</span>
+                        <h3 class="text-xl font-black text-white">Bayar via QRIS</h3>
+                    </div>
+                    <p class="text-white/80 text-sm font-medium">{{ tableNumber }} &bull; Order #{{ orderNumber }}</p>
                 </div>
 
-                <button @click="closeQRIS"
-                    class="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-4 rounded-2xl font-bold transition-all active:scale-95">
-                    Done Payment
-                </button>
+                <div class="px-8 pt-4 pb-2 text-center">
+                    <p class="text-slate-500 text-sm">Total Tagihan</p>
+                    <p class="text-3xl font-black text-slate-900 dark:text-white">{{ formatPrice(grandTotal) }}</p>
+                </div>
+
+                <!-- QR Area -->
+                <div class="px-8 pb-6 w-full">
+                    <!-- Loading state -->
+                    <div v-if="!qrCodeUrl"
+                        class="aspect-square w-full bg-slate-100 dark:bg-slate-800 rounded-2xl flex flex-col items-center justify-center gap-3">
+                        <div class="size-10 border-4 border-primary border-t-transparent rounded-full animate-spin">
+                        </div>
+                        <p class="text-slate-500 text-sm font-medium">Generating QR Code...</p>
+                    </div>
+                    <!-- QR Image -->
+                    <div v-else class="bg-white p-4 rounded-2xl border-2 border-slate-100 aspect-square w-full">
+                        <img :src="qrCodeUrl" alt="QRIS Code" class="w-full h-full object-contain" />
+                    </div>
+                </div>
+
+                <div class="w-full px-8 pb-8 flex flex-col gap-3">
+                    <p class="text-center text-xs text-slate-400">Scan menggunakan aplikasi dompet digital manapun</p>
+                    <button @click="completeQRIS" :disabled="!qrCodeUrl || isProcessing"
+                        class="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-4 rounded-2xl font-bold transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                        <div v-if="isProcessing"
+                            class="size-5 border-2 border-white dark:border-slate-900 border-t-transparent rounded-full animate-spin">
+                        </div>
+                        <template v-else>
+                            <span class="material-symbols-outlined text-xl">check_circle</span>
+                            Selesai Pembayaran
+                        </template>
+                    </button>
+                    <button @click="cancelQRIS"
+                        class="w-full py-3 text-slate-400 hover:text-slate-700 text-sm font-medium transition-colors">
+                        Batalkan
+                    </button>
+                </div>
             </div>
         </div>
     </div>
