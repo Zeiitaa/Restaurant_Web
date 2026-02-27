@@ -247,6 +247,7 @@ const backtoTable = () => {
         <header
             class="h-16 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark_action px-6 shrink-0 z-20">
             <div class="flex items-center gap-4">
+                <div class="flex gap-4 items-center hover:cursor-pointer hover:scale-110" @click="router.push('/waiters')">
                 <div class="size-8 text-primary_waiters">
                     <svg class="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                         <path
@@ -254,7 +255,8 @@ const backtoTable = () => {
                             fill="currentColor"></path>
                     </svg>
                 </div>
-                <h2 class="text-xl font-bold leading-tight tracking-tight">RestoKita</h2>
+                <h2 class="text-xl mt-1 font-bold leading-tight tracking-tight">RestoKita</h2>
+                </div>
                 <div
                     class="ml-8 flex items-center gap-2 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700">
                     <span class="material-symbols-outlined text-sm text-slate-500">table_restaurant</span>

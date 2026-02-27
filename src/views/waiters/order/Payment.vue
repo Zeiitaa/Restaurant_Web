@@ -102,16 +102,16 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="font-['Inter'] bg-[#f8fafc] dark:bg-[#0f172a] min-h-screen flex flex-col relative text-slate-900 dark:text-white transition-colors duration-200">
+    class="font-['Inter'] bg-background-light_action dark:bg-background-dark_action min-h-screen flex flex-col relative text-slate-900 dark:text-white transition-colors duration-200">
 
     <div
-      class="fixed top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#3d9cf5]/30 via-[#3d9cf5] to-[#3d9cf5]/30 opacity-50 z-[60]">
+      class="fixed top-0 left-0 w-full h-1.5 bg-linear-to-r from-primary/30 via-primary to-primary/30 opacity-50 z-60">
     </div>
-    <div class="fixed -bottom-32 -left-32 w-96 h-96 bg-[#3d9cf5]/5 rounded-full blur-[120px] pointer-events-none"></div>
-    <div class="fixed -top-32 -right-32 w-96 h-96 bg-[#3d9cf5]/5 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="fixed -bottom-32 -left-32 w-96 h-96 bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="fixed -top-32 -right-32 w-96 h-96 bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
 
     <nav
-      class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 sticky top-0 z-50 relative">
+      class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 top-0 z-50 relative">
       <div class="max-w-7xl mx-auto flex justify-between items-center">
         <div class="flex items-center space-x-3">
           <div class="bg-primary p-2 rounded-lg shadow-sm flex items-center justify-center">
@@ -133,8 +133,8 @@ onUnmounted(() => {
       </div>
     </nav>
 
-    <main class="flex-grow flex flex-col p-6 md:p-12 relative z-10">
-      <div class="w-full max-w-7xl mx-auto flex-grow flex flex-col">
+    <main class="grow flex flex-col p-6 md:p-12 relative z-10">
+      <div class="w-full max-w-7xl mx-auto grow flex flex-col">
 
         <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
           <div>
