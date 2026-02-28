@@ -9,7 +9,7 @@ import {
 export const useTableStore = defineStore('table', {
     state: () => ({
         table: JSON.parse(localStorage.getItem("table")) || null,
-        tableAvailable: JSON.parse(localStorage.getItem("tableAvailable")) || null,
+        tableAvailable: JSON.parse(localStorage.getItem("tableAvailable")) || [],
     }),
 
     actions: {

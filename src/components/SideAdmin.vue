@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps({
-    /** 'dashboard' | 'order-history' */
+    /** 'dashboard' | 'manage-menu' | 'manage-table' | 'manage-category' | 'order-history' | 'manage-staff' */
     activePage: {
         type: String,
         default: 'dashboard',
@@ -14,7 +14,7 @@ const props = defineProps({
 const router = useRouter()
 const auth = useAuthStore()
 
-const managerName = computed(() => auth.user?.name ?? auth.user?.username ?? 'Admin')
+const managerName = computed(() => auth.profile.username)
 
 const handleSignOut = () => {
     if (confirm('Are you sure you want to sign out?')) {
@@ -39,7 +39,7 @@ const handleSignOut = () => {
                 <div class="flex flex-col min-w-0">
                     <h1 class="text-sm font-bold leading-tight truncate text-slate-800 dark:text-slate-100">{{
                         managerName }}</h1>
-                    <p class="text-xs text-slate-500 font-medium">Restaurant Manager</p>
+                    <p class="text-xs text-slate-500 font-medium">Restaurant Administrator</p>
                 </div>
             </div>
 
@@ -52,27 +52,37 @@ const handleSignOut = () => {
                     <span class="material-symbols-outlined">dashboard</span>Dashboard
                 </button>
 
+                <button @click="router.push('/admin/manage-menu')" :class="activePage === 'manage-menu' ? 'active' : ''"
+                    class="nav-link">
+                    <span class="material-symbols-outlined">restaurant_menu</span>Menu Management
+                </button>
+
+                <button @click="router.push('/admin/manage-table')"
+                    :class="activePage === 'manage-table' ? 'active' : ''" class="nav-link">
+                    <span class="material-symbols-outlined">table_restaurant</span>Table Management
+                </button>
+
+
+                <button @click="router.push('/admin/manage-category')"
+                    :class="activePage === 'manage-category' ? 'active' : ''" class="nav-link">
+                    <span class="material-symbols-outlined">category</span>Category Management
+                </button>
+
                 <button @click="router.push('/admin/order-history')"
                     :class="activePage === 'order-history' ? 'active' : ''" class="nav-link">
                     <span class="material-symbols-outlined">receipt_long</span>Order History
                 </button>
 
-                <button class="nav-link">
-                    <span class="material-symbols-outlined">restaurant_menu</span>Menu Management
-                </button>
-
-                <button class="nav-link">
+                <button @click="router.push('/admin/manage-staff')"
+                    :class="activePage === 'manage-staff' ? 'active' : ''" class="nav-link">
                     <span class="material-symbols-outlined">group</span>Staff
                 </button>
 
-                <button class="nav-link">
-                    <span class="material-symbols-outlined">analytics</span>Reports
-                </button>
             </nav>
 
             <!-- Bottom -->
             <div class="mt-auto pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-1">
-                <button class="nav-link">
+                <button class="nav-link" @click="router.push('/settings')">
                     <span class="material-symbols-outlined">settings</span>Settings
                 </button>
                 <button @click="handleSignOut"

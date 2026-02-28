@@ -24,8 +24,13 @@ import Payment from '@/views/waiters/order/Payment.vue'
 // admin
 import Dashboard from '@/views/admin/Dashboard.vue'
 import OrderHistory from '@/views/admin/OrderHistory.vue'
+import ManageMenu from '@/views/admin/ManageMenu.vue'
+import ManageStaff from '@/views/admin/ManageStaff.vue'
+import ManageTable from '@/views/admin/ManageTable.vue'
+import ManageCategory from '@/views/admin/ManageCategory.vue'
 
 import NotFound from '@/views/notFound.vue'
+
 
 
 const router = createRouter({
@@ -105,6 +110,31 @@ const router = createRouter({
       path: '/admin/order-history',
       name: 'admin-order-history',
       component: OrderHistory
+    },
+    {
+      path: '/admin/manage-menu',
+      name: 'admin-manage-menu',
+      component: ManageMenu
+    },
+    {
+      path: '/admin/manage-staff',
+      name: 'admin-manage-staff',
+      component: ManageStaff
+    },
+    {
+      path: '/admin/manage-staff/:id',
+      name: 'admin-manage-staff-edit',
+      component: ManageStaff
+    },
+    {
+      path: '/admin/manage-table',
+      name: 'admin-manage-table',
+      component: ManageTable
+    },
+    {
+      path: '/admin/manage-category',
+      name: 'admin-manage-category',
+      component: ManageCategory
     },
     {
       path: '/:catchAll(.*)',
