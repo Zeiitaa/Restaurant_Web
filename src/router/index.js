@@ -52,6 +52,7 @@ import ManageMenu from '@/views/admin/ManageMenu.vue'
 import ManageStaff from '@/views/admin/ManageStaff.vue'
 import ManageTable from '@/views/admin/ManageTable.vue'
 import ManageCategory from '@/views/admin/ManageCategory.vue'
+import StockHistory from '@/views/admin/StockHistory.vue'
 
 import NotFound from '@/views/notFound.vue'
 
@@ -236,6 +237,15 @@ const router = createRouter({
       path: '/admin/manage-category',
       name: 'admin-manage-category',
       component: ManageCategory,
+      meta: {
+        requiresAuth: true,
+        role: 'admin'
+      }
+    },
+    {
+      path: '/admin/stock-history',
+      name: 'admin-stock-history',
+      component: StockHistory,
       meta: {
         requiresAuth: true,
         role: 'admin'
