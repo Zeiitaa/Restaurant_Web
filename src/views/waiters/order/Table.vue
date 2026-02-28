@@ -22,7 +22,7 @@ const handleSignOut = () => {
 }
 
 const selectTable = (table) => {
-  if (table.status === 'occupied') return
+  if (table.status === 'booked') return
   console.log(`Table ${table.table_code} selected!`)
   router.push({ name: 'waiters-menu', params: { tableCode: table.table_code } })
 }
@@ -76,7 +76,7 @@ const goBack = () => {
             table.status === 'available'
               ? 'bg-white dark:bg-slate-800 border-2 border-primary/20 hover:border-primary shadow-sm hover:shadow-xl hover:shadow-primary/10 cursor-pointer'
               : 'bg-slate-100 dark:bg-slate-800/50 border-2 border-slate-200 dark:border-slate-700 opacity-60 cursor-not-allowed'
-          ]" :disabled="table.status === 'occupied'">
+          ]" :disabled="table.status === 'booked'">
             <span
               :class="['text-4xl font-bold transition-colors', table.status === 'available' ? 'text-primary' : 'text-slate-400']">
               {{ table.table_code }}
@@ -96,7 +96,42 @@ const goBack = () => {
               <span>Available</span>
             </div>
             <span v-else class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Occupied
+              <button
+                class="btn btn-primary"
+                type="button"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#Id1"
+                aria-controls="Id1"
+              >
+                Enable both scrolling & backdrop
+              </button>
+              
+              <div
+                class="offcanvas offcanvas-start"
+                data-bs-scroll="true"
+                tabindex="-1"
+                id="Id1"
+                aria-labelledby="Enable both scrolling & backdrop"
+              >
+                <div class="offcanvas-header">
+                  <h5 class="offcanvas-title" id="Enable both scrolling & backdrop">
+                    Backdrop with scrolling
+                  </h5>
+                  <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="offcanvas"
+                    aria-label="Close"
+                  ></button>
+                </div>
+                <div class="offcanvas-body">
+                  <p>
+                    Try scrolling the rest of the page to see this option in
+                    action.
+                  </p>
+                </div>
+              </div>
+              
             </span>
           </button>
 

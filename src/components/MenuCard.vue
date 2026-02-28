@@ -8,7 +8,7 @@ const props = defineProps({
 
 const emit = defineEmits(['open-modal']);
 
-const API_IMAGE_URL = import.meta.env.VITE_API_URL_IMAGE || 'http://localhost:8000/storage/';
+const API_IMAGE_URL = import.meta.env.VITE_API_URL_IMAGE
 
 const getImageUrl = (imagePath) => {
     if (!imagePath) return 'https://via.placeholder.com/300x200?text=No+Image';

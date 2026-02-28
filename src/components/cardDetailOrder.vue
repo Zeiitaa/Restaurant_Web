@@ -36,10 +36,12 @@ const formatPrice = (price) => {
     }).format(price);
 };
 
+const API_IMAGE_URL = import.meta.env.VITE_API_URL_IMAGE || 'http://localhost:8000/storage/'
+
 const getImageUrl = (image) => {
     if (!image) return '/placeholder-food.jpg';
     if (image.startsWith('http')) return image;
-    return `http://localhost:8000/storage/${image}`;
+    return `${API_IMAGE_URL}${image}`;
 };
 
 const handleClose = () => {
