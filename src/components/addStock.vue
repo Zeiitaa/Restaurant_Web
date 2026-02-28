@@ -36,11 +36,9 @@ const save = async () => {
     saving.value = true
     error.value = ''
     try {
-        await api.patch(
-            `/menu/${props.item.id}`,
-            { daily_portion: (props.item.daily_portion ?? 0) + Number(stockAdd.value),
-                status: "available"
-             },
+        await api.post(
+            `/upstock/`,
+            { menu_id: props.item.id, amount: Number(stockAdd.value) },
             { headers: { Authorization: `Bearer ${auth.token}` } }
         )
         await menuStore.fetchMenu()

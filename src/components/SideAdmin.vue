@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps({
-    /** 'dashboard' | 'manage-menu' | 'manage-table' | 'manage-category' | 'order-history' | 'manage-staff' */
+    /** 'dashboard' | 'manage-menu' | 'manage-table' | 'manage-category' | 'stock-history' | 'order-history' | 'manage-staff' */
     activePage: {
         type: String,
         default: 'dashboard',
@@ -66,6 +66,11 @@ const handleSignOut = () => {
                 <button @click="router.push('/admin/manage-category')"
                     :class="activePage === 'manage-category' ? 'active' : ''" class="nav-link">
                     <span class="material-symbols-outlined">category</span>Category Management
+                </button>
+
+                <button @click="router.push('/admin/stock-history')"
+                    :class="activePage === 'stock-history' ? 'active' : ''" class="nav-link">
+                    <span class="material-symbols-outlined">inventory_2</span>Stock History
                 </button>
 
                 <button @click="router.push('/admin/order-history')"
